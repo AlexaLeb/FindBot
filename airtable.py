@@ -1,5 +1,5 @@
 from pyairtable import Api
-from pprint import pprint
+# from pprint import pprint
 
 
 api = Api('patSxQtpMd6a4iKOq.83e528e67458f9fbce584126c80b9f5fd518401f5aa629591a7264ecbba04082')
@@ -8,10 +8,16 @@ api = Api('patSxQtpMd6a4iKOq.83e528e67458f9fbce584126c80b9f5fd518401f5aa629591a7
 DB_ID = 'appeNb48kX0169buS'
 item_id = 'tblS4WhViKaVEWkcO'
 users_id = 'tblVQ1TvSKcuT8j9f'
-# user_id = 'tblKa5uPzW1YDGIco'
+dop_id = 'tbla915OURYq9LpdB'
+
 
 item_table = api.table(DB_ID, item_id)
 user_table = api.table(DB_ID, users_id)
+dop_table = api.table(DB_ID, dop_id)
+
+
+def get_dop():
+    return dop_table.all()
 
 
 def get_item():
@@ -22,10 +28,20 @@ def get_users_data():
     return user_table.all()
 
 
+def add_dop(param):
+    data = get_dop()
+    for i in data:
+        if i['fields']['Name'] == param:
+            c = int(i['fields']['количество кликов'])
+            c += 1
+            dop_table.update(i['id'], {'количество кликов': str(c)})
+            return True
+
+
 def add_user(id, nick):
     """
     Добавляет пользователя в бд по первому сообщению
-    :param id: уникальный номер в телеграмм
+    :param id: уникальный номер в телеграмме
     :param nick: никнейм пользователя
     :return:
     """
@@ -50,12 +66,25 @@ def add_item_found(data: dict):
 def change_item_info(id, user, status='да'):
     list_data = get_item()
     users = get_users_data()
-    print(id, user)
     for i in list_data:
         if i['id'] == str(id):
             for a in users:
                 if a['fields']['Пользователь'] == str(user):
                     item_table.update(i['id'], {'Пользователи 2': [str(a['id'])], 'Найдена': status})
+
+
+def approve_item(id, param):
+    list_data = get_item()
+    for i in list_data:
+        if i['id'] == str(id):
+            item_table.update(i['id'], {param[0]: param[1]})
+
+
+def delet_id(id):
+    list_data = get_item()
+    for i in list_data:
+        if i['id'] == str(id):
+            item_table.delete(i['id'])
 
 
 def change_user_info(data: dict):
